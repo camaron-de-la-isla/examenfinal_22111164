@@ -30,7 +30,13 @@ class Cliente():
 		while True:
 			try:
 				data = self.s.recv(128)
-				if data: print(pickle.loads(data))
+                
+				if data: A[] = [pickle.loads(data)[0]][pickle.loads(data)[1]]
+                         B[] = [pickle.loads(data)[2]][pickle.loads(data)[3]]
+                    sec_mult(A, B)
+                    par_mult(A, B)
+                    
+                
 			except: pass
 #Envia un mensaje al servidor
 	def enviar(self, msg):
@@ -46,6 +52,37 @@ class Cliente():
 						fw.write(line)
 					
 
+def sec_mult(A, B):
+    C = [[0] * n_col_B for i in range(n_fil_A)]
+    for i in range(n_fil_A):
+        for j in range(n_col_B):
+            for k in range(n_col_A):
+                C[i][j] += A[i][k] * B[k][j]
+    return C
+def par_mult(A, B):
+    n_cores = multiprocessing.cpu_count ()
+    size_col = math.ceil(n_col_B/n_cores)
+    size_fil = math.ceil(n_fil_A/n_cores)
+    MC = mp.RawArray ('i', n_fil_A * n_col_B)
+    cores = []
+    for core in range(n_cores):
+        i_MC = min(core * size_fil, n_fil_A)
+        f_MC = min((core + 1) * size_fil, n_fil_A)
+        cores.append(mp.Process(target=par_core, args=(A, B, MC, i_MC, f_MC)))
+    for core in cores:
+        core.start()
+    for core in cores:
+        core.join()
+    C_2D = [[0] * n_col_B for i in range(n_fil_A)]
+    for i in range(n_fil_A):
+        for j in range(n_col_B):
+            C_2D[i][i] = MC[i*n_col_B + j]
+    return C_2D
 
+def par_core(A, B, MC, i_MC, f_MC):
+    for i in range (i_MC, f_MC):
+        for j in range(len (B[0])):
+            for k in range(len (A[0])):
+                MC[i*len(B[0])+ j] += A[i][k] * B[k][j]
 
 arrancar = Cliente()

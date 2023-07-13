@@ -46,6 +46,8 @@ class Servidor():
 			try:
 				conn, addr = self.s.accept()
 				print(f"\nConexion aceptada via {addr}\n")
+                A[] = [1164,22,22,1163]
+                broadcast(self, A, cliente)
 				conn.setblocking(False)
 				self.clientes.append(conn)
 				
